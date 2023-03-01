@@ -4,7 +4,7 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from core.models import User, Otp, News
+from core.models import User, Otp, News, Token
 from core.serializers import UserSerializer, NewsSerializer
 from core.utils import token_response, IsAuthenticatedUser
 
@@ -17,6 +17,7 @@ def getotp(request):
         return Response("PARAMS_MISSING",status=400)
 
     otp = randint(100000, 999999)
+    print(otp)
 
     obj, created = Otp.objects.update_or_create(
         phone=phone,
@@ -37,9 +38,12 @@ def verifyotp(request):
         obj = Otp.objects.get(phone=phone,otp=otp)
         obj.delete()
 
-        User.objects.get_or_create(phone=phone)
+        user, created = User.objects.get_or_create(
+            phone=phone,
 
-        return token_response()
+        )
+
+        return token_response(user)
     except:
         return Response("Invalid otp",status=400)
 
@@ -56,8 +60,9 @@ def userdetails(request):
 @permission_classes([IsAuthenticatedUser])
 def updateprofile(request):
 
-    name = request.data.get("phone")
-    image = request.FILES.get('image')
+    name = request.data.get("name")
+    image = request.FILES.get('file')
+    print(image)
 
     request.user.image = image
     request.user.name = name
@@ -78,6 +83,10 @@ def news(request):
 
 
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedUser])
+def logout(request):
+    Token.objects.filter(user=request.user).delete()
+    return Response("LOGGED OUT")
 
 

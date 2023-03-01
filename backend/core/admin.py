@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import register
 
-from core.models import User, Otp, News
+from core.models import User, Otp, News, Token
 
 
 @register(User)
@@ -18,3 +18,8 @@ class OtpAdmin(admin.ModelAdmin):
 @register(News)
 class NewsAdmin(admin.ModelAdmin):
     list_display = ['id','title','details','image']
+
+
+@register(Token)
+class TokenAdmin(admin.ModelAdmin):
+    list_display = ['id','token','user','created_at']

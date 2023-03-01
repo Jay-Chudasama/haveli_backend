@@ -14,7 +14,7 @@ def new_token():
 def token_response(user):
     token = new_token()
     Token.objects.create(token=token, user=user)
-    return Response('token ' + token)
+    return Response({'token' : token})
 
 
 

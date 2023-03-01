@@ -1,6 +1,6 @@
 from django.urls import path
 
-from core.views import getotp, verifyotp, userdetails, updateprofile, news
+from core.views import getotp, verifyotp, userdetails, updateprofile, news, logout
 
 urlpatterns = [
     path('getotp/', getotp),
@@ -8,4 +8,5 @@ urlpatterns = [
     path('userdetails/', userdetails),
     path('updateprofile/', updateprofile),
     path('news/', news),
+    path('logout/', logout),
 ]
