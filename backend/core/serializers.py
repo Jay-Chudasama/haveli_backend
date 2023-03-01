@@ -7,11 +7,6 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id','phone','name','image']
+        fields = ['id','email','username','image']
 
 
-class NewsSerializer(ModelSerializer):
-
-    class Meta:
-        model = News
-        fields = ['id','details','title','image']

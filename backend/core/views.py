@@ -4,49 +4,30 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from core.models import User, Otp, News, Token
-from core.serializers import UserSerializer, NewsSerializer
+from core.models import User, Token
+from core.serializers import UserSerializer
 from core.utils import token_response, IsAuthenticatedUser
 
 
 @api_view(['POST'])
-def getotp(request):
-    phone = request.data.get('phone')
+def create_account(request):
+    email = request.data.get('email')
+    password = request.data.get('password')
 
-    if not phone:
-        return Response("PARAMS_MISSING",status=400)
-
-    otp = randint(100000, 999999)
-    print(otp)
-
-    obj, created = Otp.objects.update_or_create(
-        phone=phone,
-        defaults={'phone': phone,'otp':otp},
-    )
-    return Response("SUCCESS")
-
-
-@api_view(['POST'])
-def verifyotp(request):
-    phone = request.data.get('phone')
-    otp = request.data.get('otp')
-
-    if not otp or not phone:
+    if not email or not password:
         return Response("PARAMS_MISSING", status=400)
 
-    try:
-        obj = Otp.objects.get(phone=phone,otp=otp)
-        obj.delete()
+    user_exists = User.objects.filter(email=email).exists()
 
-        user, created = User.objects.get_or_create(
-            phone=phone,
-
-        )
+    if user_exists:
+        return Response("Email already taken!", status=400)
+    else:
+        user = User()
+        user.email = email
+        user.password = password
+        user.save()
 
         return token_response(user)
-    except:
-        return Response("Invalid otp",status=400)
-
 
 
 @api_view(['GET'])
@@ -59,7 +40,6 @@ def userdetails(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticatedUser])
 def updateprofile(request):
-
     name = request.data.get("name")
     image = request.FILES.get('file')
     print(image)
@@ -71,22 +51,3 @@ def updateprofile(request):
 
     data = UserSerializer(request.user).data
     return Response(data)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticatedUser])
-def news(request):
-    news = News.objects.all()
-
-    data = NewsSerializer(news,many=True).data
-    return Response(data)
-
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticatedUser])
-def logout(request):
-    Token.objects.filter(user=request.user).delete()
-    return Response("LOGGED OUT")
-
-

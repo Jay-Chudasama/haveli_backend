@@ -1,20 +1,11 @@
 from django.db import models
 
 class User(models.Model):
-    phone = models.CharField(max_length=10)
-    name = models.CharField(max_length=100)
+    email = models.EmailField(max_length=500)
+    password = models.CharField(max_length=100)
+    username = models.CharField(max_length=100)
     image = models.ImageField(upload_to='profiles/',null=True)
 
-
-class Otp(models.Model):
-    phone = models.CharField(max_length=10)
-    otp = models.IntegerField(default=0)
-
-
-class News(models.Model):
-    image = models.ImageField(upload_to='news/',)
-    details = models.TextField(max_length=10000000)
-    title = models.CharField(max_length=1000)
 
 
 class Token(models.Model):
