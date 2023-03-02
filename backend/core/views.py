@@ -75,7 +75,11 @@ def forgot_password(request):
 @permission_classes([IsAuthenticatedUser])
 def userdetails(request):
     id = request.GET.get("id")
-    user = get_object_or_404(User,id=id)
+    if id:
+        user = get_object_or_404(User,id=id)
+    else:
+        user = request.user
+
     data = UserDetailsSerializer(user).data
 
     if id != request.user.id:
