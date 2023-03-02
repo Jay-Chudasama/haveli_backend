@@ -1,10 +1,13 @@
 import uuid
 
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 
 from core.models import Token
 
+
+pagination = LimitOffsetPagination()
 
 def new_token():
     token = uuid.uuid1().hex
