@@ -42,7 +42,7 @@ class StorySerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'story']
+        fields = ['id','image','username', 'story']
 
     def get_story(self, user):
         today = datetime.datetime.now()

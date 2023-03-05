@@ -2,12 +2,11 @@ from random import randint
 
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 
 from core.models import User, Token, Post, Notification, Follow
 from core.serializers import UserSerializer, StorySerializer, FeedSerializer, NotificationSerializer, \
     UserDetailsSerializer
-from core.utils import token_response, IsAuthenticatedUser, pagination
+from core.utils import token_response, IsAuthenticatedUser, pagination, Response
 
 
 @api_view(['POST'])
@@ -27,7 +26,12 @@ def create_account(request):
         user.email = email
         user.password = password
         user.save()
-        Follow.objects.create(user=user)
+
+        follow = Follow()
+        follow.user = user
+        follow.add(user)
+        follow.save()
+
 
         return token_response(user)
 
@@ -96,6 +100,8 @@ def setup_account(request):
     username = request.data.get("username")
     image = request.FILES.get('image')
 
+    print(image)
+
     request.user.image = image
     request.user.username = username
 
@@ -109,10 +115,12 @@ def setup_account(request):
 @permission_classes([IsAuthenticatedUser])
 def stories(request):
 
-    follows = get_object_or_404(Follow,user = request.user).follow
-    queryset = pagination.paginate_queryset(follows.all(),request)
+    follows = get_object_or_404(Follow,user = request.user).follow.all()
+    queryset = pagination.paginate_queryset(follows,request)
 
-    return pagination.get_paginated_response(StorySerializer(queryset,many=True).data)
+    data = StorySerializer(queryset,many=True).data
+
+    return pagination.get_paginated_response(data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
