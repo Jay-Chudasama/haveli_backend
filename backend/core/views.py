@@ -29,8 +29,8 @@ def create_account(request):
 
         follow = Follow()
         follow.user = user
-        follow.add(user)
         follow.save()
+        follow.follow.add(user)
 
 
         return token_response(user)
@@ -102,7 +102,9 @@ def setup_account(request):
 
     print(image)
 
-    request.user.image = image
+    if image:
+        request.user.image = image
+
     request.user.username = username
 
     request.user.save()

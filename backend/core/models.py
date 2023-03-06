@@ -7,6 +7,7 @@ class User(models.Model):
     username = models.CharField(max_length=100)
     image = models.ImageField(upload_to='profiles/', null=True)
     bio = models.TextField(max_length=1000)
+    viewed_stories = models.ManyToManyField("StoryImage",blank=True,related_name="user_set")
 
 
     def __str__(self):
