@@ -3,7 +3,7 @@ from random import randint
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 
-from core.models import User, Token, Post, Notification, Follow
+from core.models import User, Token, Post, Notification, Follow, StoryImage
 from core.serializers import UserSerializer, StorySerializer, FeedSerializer, NotificationSerializer, \
     UserDetailsSerializer
 from core.utils import token_response, IsAuthenticatedUser, pagination, Response
@@ -118,11 +118,20 @@ def setup_account(request):
 def stories(request):
 
     follows = get_object_or_404(Follow,user = request.user).follow.all()
-    queryset = pagination.paginate_queryset(follows,request)
 
-    data = StorySerializer(queryset,many=True).data
 
-    return pagination.get_paginated_response(data)
+
+    data = StorySerializer(follows,many=True).data
+    list = []
+    temp = []
+    for obj in data:
+        if len(obj['story']) > 0:
+            if obj['id']==request.user.id:
+                temp.append(obj)
+            else:
+                list.append(obj)
+
+    return Response(temp+list)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
@@ -236,5 +245,26 @@ def follow(request):
         Notification.objects.create(user=follow_to, followed_by=request.user)
 
     return Response("SUCCESS")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedUser])
+def viewed_story(request):
+    id = request.GET.get("id")
+    request.user.viewed_stories.add(id)
+    return Response("SUCCESS")
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticatedUser])
+def uploadstory(request):
+
+    # print(request.FILES.getlist('story'))
+    for image in request.FILES.getlist('story'):
+        StoryImage.objects.create(user=request.user,image=image)
+
+    return Response(StorySerializer(request.user).data)
+
+
 
 
