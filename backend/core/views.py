@@ -32,7 +32,6 @@ def create_account(request):
         follow.save()
         follow.follow.add(user)
 
-
         return token_response(user)
 
 
@@ -58,17 +57,17 @@ def login(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
 def logout(request):
-
     request.user.tokens_set.all().delete()
 
     return Response("SUCCESS")
+
 
 @api_view(['GET'])
 def forgot_password(request):
     email = request.GET.get('email')
 
     if not User.objects.filter(email=email).exists():
-        return Response("User not found!",404)
+        return Response("User not found!", 404)
 
     # SEND MAIL TO USER FOR RESTTING PASSWORD.....
 
@@ -80,15 +79,15 @@ def forgot_password(request):
 def userdetails(request):
     id = request.GET.get("id")
     if id:
-        user = get_object_or_404(User,id=id)
+        user = get_object_or_404(User, id=id)
     else:
         user = request.user
 
     data = UserDetailsSerializer(user).data
 
     if id != request.user.id:
-    #     other user profile
-        follows = get_object_or_404(Follow,user=request.user).follow
+        #     other user profile
+        follows = get_object_or_404(Follow, user=request.user).follow
         data['in_followlist'] = follows.contains(user)
 
     return Response(data)
@@ -116,40 +115,47 @@ def setup_account(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
 def stories(request):
+    follows = get_object_or_404(Follow, user=request.user).follow.all()
 
-    follows = get_object_or_404(Follow,user = request.user).follow.all()
-
-
-
-    data = StorySerializer(follows,many=True).data
+    data = StorySerializer(follows, many=True).data
     list = []
     temp = []
     for obj in data:
         if len(obj['story']) > 0:
-            if obj['id']==request.user.id:
+            if obj['id'] == request.user.id:
                 temp.append(obj)
             else:
                 list.append(obj)
 
-    return Response(temp+list)
+    return Response(temp + list)
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
 def homefeeds(request):
-
-    follows = get_object_or_404(Follow,user=request.user).follow.all()
+    follows = get_object_or_404(Follow, user=request.user).follow.all()
     feeds = Post.objects.filter(user__in=follows).order_by("-created_at")
 
     queryset = pagination.paginate_queryset(feeds, request)
 
-    return pagination.get_paginated_response(FeedSerializer(queryset, many=True).data)
+    liked_post = []
 
+    for feed in queryset:
+        if feed.likes.contains(request.user):
+            liked_post.append(feed.id)
+
+    data = FeedSerializer(queryset, many=True).data
+
+    for post in data:
+        post['liked'] =liked_post.__contains__(post['id'])
+
+
+    return pagination.get_paginated_response(data)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
 def userfeeds(request):
-
     id = request.GET.get('id')
 
     if not id:
@@ -159,7 +165,18 @@ def userfeeds(request):
 
     queryset = pagination.paginate_queryset(feeds, request)
 
-    return pagination.get_paginated_response(FeedSerializer(queryset, many=True).data)
+    liked_post = []
+
+    for feed in queryset:
+        if feed.likes.contains(request.user):
+            liked_post.append(feed.id)
+
+    data = FeedSerializer(queryset, many=True).data
+
+    for post in data:
+        post['liked'] = liked_post.__contains__(post['id'])
+
+    return pagination.get_paginated_response(data)
 
 
 @api_view(['POST'])
@@ -171,10 +188,13 @@ def add_post(request):
     post = Post()
     post.user = request.user
     post.image = image
-    post.caption =caption
+    post.caption = caption
     post.save()
 
-    return Response(FeedSerializer(post).data)
+    data = FeedSerializer(post).data
+    data['liked'] = False
+
+    return Response(data)
 
 
 @api_view(['GET'])
@@ -187,7 +207,7 @@ def search(request):
     queryset = pagination.paginate_queryset(users, request)
 
     data = []
-    follows = get_object_or_404(Follow,user=request.user).follow
+    follows = get_object_or_404(Follow, user=request.user).follow
     for user in queryset:
         json = UserSerializer(user).data
         json['following'] = follows.contains(user)
@@ -199,11 +219,10 @@ def search(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedUser])
 def notifications(request):
-
     notifications = request.user.notifications_set.all().order_by('-created_at')
     queryset = pagination.paginate_queryset(notifications, request)
 
-    return pagination.get_paginated_response(NotificationSerializer(queryset,many=True).data)
+    return pagination.get_paginated_response(NotificationSerializer(queryset, many=True).data)
 
 
 @api_view(['POST'])
@@ -211,18 +230,17 @@ def notifications(request):
 def like(request):
     id = request.data.get('id')
 
-    post = get_object_or_404(Post,id=id)
+    post = get_object_or_404(Post, id=id)
 
     if post.likes.contains(request.user):
         # dislike
         post.likes.remove(request.user)
-        Notification.objects.filter(user=post.user,liked_by=request.user,post=post).delete()
+        Notification.objects.filter(user=post.user, liked_by=request.user, post=post).delete()
     else:
         # like
         # todo push notification
         post.likes.add(request.user)
-        Notification.objects.create(user=post.user,liked_by=request.user,post=post)
-
+        Notification.objects.create(user=post.user, liked_by=request.user, post=post)
 
     return Response("SUCCESS")
 
@@ -232,10 +250,10 @@ def like(request):
 def follow(request):
     id = request.data.get('id')
 
-    follow_to = get_object_or_404(User,id=id)
-    follows = get_object_or_404(Follow,user=request.user).follow
+    follow_to = get_object_or_404(User, id=id)
+    follows = get_object_or_404(Follow, user=request.user).follow
     if follows.contains(follow_to):
-        #unfollow
+        # unfollow
         follows.remove(follow_to)
         Notification.objects.filter(user=follow_to, followed_by=request.user).delete()
     else:
@@ -258,13 +276,22 @@ def viewed_story(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticatedUser])
 def uploadstory(request):
-
     # print(request.FILES.getlist('story'))
     for image in request.FILES.getlist('story'):
-        StoryImage.objects.create(user=request.user,image=image)
+        StoryImage.objects.create(user=request.user, image=image)
 
     return Response(StorySerializer(request.user).data)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedUser])
+def deletestory(request):
+    id = request.GET.get("id")
 
+    StoryImage.objects.filter(id=id).delete()
 
+    data = StorySerializer(request.user).data
+    if len(data['story']) == 0:
+        return Response()
+    else:
+        return Response(data)
