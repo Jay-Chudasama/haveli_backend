@@ -211,7 +211,8 @@ def search(request):
     for user in queryset:
         json = UserSerializer(user).data
         json['following'] = follows.contains(user)
-        data.append(json)
+        if user.id!=request.user.id:
+            data.append(json)
 
     return pagination.get_paginated_response(data)
 
@@ -238,9 +239,10 @@ def like(request):
         Notification.objects.filter(user=post.user, liked_by=request.user, post=post).delete()
     else:
         # like
-        # todo push notification
         post.likes.add(request.user)
-        Notification.objects.create(user=post.user, liked_by=request.user, post=post)
+        if request.user != post.user:
+            # todo push notification
+            Notification.objects.create(user=post.user, liked_by=request.user, post=post)
 
     return Response("SUCCESS")
 

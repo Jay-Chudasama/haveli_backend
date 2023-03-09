@@ -22,13 +22,13 @@ class UserDetailsSerializer(ModelSerializer):
         fields = ['id', 'email', 'username', 'image', 'bio', 'followers', 'following', 'posts']
 
     def get_following(self, user):
-        return Follow.objects.get(user=user).follow.count()
+        return Follow.objects.get(user=user).follow.count()-1
 
     def get_posts(self, user):
         return Post.objects.filter(user=user).count()
 
     def get_followers(self, user):
-        return Follow.objects.filter(follow=user).count()
+        return Follow.objects.filter(follow=user).count()-1
 
 
 class StoryImageSerializer(ModelSerializer):
