@@ -1,7 +1,7 @@
 from django.urls import path
 
 from core.views import create_account, login, forgot_password, setup_account, stories, homefeeds, add_post, search, \
-    notifications, like, follow, userdetails, userfeeds, logout, viewed_story, uploadstory, deletestory
+    notifications, like, follow, userdetails, userfeeds, logout, viewed_story, uploadstory, deletestory, books
 
 urlpatterns = [
     path('createaccount/', create_account),
@@ -21,5 +21,6 @@ urlpatterns = [
     path('follow/', follow),
     path('userfeeds/', userfeeds),
     path('logout/', logout),
+    path('books/', books),
 
 ]

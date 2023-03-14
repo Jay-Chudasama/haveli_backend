@@ -3,9 +3,9 @@ from random import randint
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 
-from core.models import User, Token, Post, Notification, Follow, StoryImage
+from core.models import User, Token, Post, Notification, Follow, StoryImage, Book
 from core.serializers import UserSerializer, StorySerializer, FeedSerializer, NotificationSerializer, \
-    UserDetailsSerializer
+    UserDetailsSerializer, BookSerializer
 from core.utils import token_response, IsAuthenticatedUser, pagination, Response
 
 
@@ -297,3 +297,11 @@ def deletestory(request):
         return Response()
     else:
         return Response(data)
+
+
+@api_view(['GET'])
+def books(request):
+    books = Book.objects.all()
+    queryset = pagination.paginate_queryset(books,request)
+    return pagination.get_paginated_response(BookSerializer(queryset,many=True).data)
+

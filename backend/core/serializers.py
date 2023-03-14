@@ -3,7 +3,7 @@ import datetime
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
-from core.models import User, StoryImage, Post, Notification, Follow
+from core.models import User, StoryImage, Post, Notification, Follow, Book
 
 
 class UserSerializer(ModelSerializer):
@@ -88,3 +88,10 @@ class NotificationSerializer(ModelSerializer):
             return UserSerializer(notification.followed_by).data
         if notification.liked_by:
             return UserSerializer(notification.liked_by).data
+
+
+
+class BookSerializer(ModelSerializer):
+    class Meta:
+        model = Book
+        fields = ['id','name','author','pages']

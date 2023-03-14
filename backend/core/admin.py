@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import register
 
-from core.models import User, Token, StoryImage, Post, Notification, Follow
+from core.models import User, Token, StoryImage, Post, Notification, Follow, Book
 
 
 class FollowInline(admin.TabularInline):
@@ -36,3 +36,7 @@ class TokenAdmin(admin.ModelAdmin):
 
 
 
+
+@register(Book)
+class BookAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name', 'author', 'pages']

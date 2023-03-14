@@ -47,6 +47,12 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class Book(models.Model):
+    name = models.CharField(max_length=100)
+    author = models.CharField(max_length=100)
+    pages = models.IntegerField(default=0)
+
+
 
 
 
