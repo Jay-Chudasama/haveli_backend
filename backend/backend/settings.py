@@ -138,3 +138,9 @@ REST_FRAMEWORK = {
         'core.authentication.TokenAuthentication',
     ]
 }
+
+
+RZ_ID = 'rzp_test_xaWDAQt9SfdkoT'
+RZ_KEY = 'UMQ3r6KbUTQeOJKFvaZnQVyh'
+
+FCM_KEY = "AAAAIpY8s8k:APA91bF-TckRNIDPSccumAe6a6YpibhrSBcfW-hr4_NTogD0sMp8iTHKkU6lXU2Ka5vYkSdi4IMS8NUvMi0EnWCPlHm7kp_YStLPQtnAfby1tEDMqMH6B23k-0lUHuQnXJy5aO-KRV8R"

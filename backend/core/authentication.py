@@ -8,6 +8,7 @@ class TokenAuthentication(BaseAuthentication):
 
     def authenticate(self, request):
         token = request.headers.get('Authorization')
+        print(token)
         if token:
             try:
                 user = Token.objects.get(token=str(token)).user
